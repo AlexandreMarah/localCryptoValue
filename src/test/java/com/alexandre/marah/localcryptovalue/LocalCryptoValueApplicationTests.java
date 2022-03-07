@@ -11,9 +11,4 @@ class LocalCryptoValueApplicationTests {
 	void contextLoads() {
 	}
 
-	@Test
-	public void applicationContextTest() {
-		LocalCryptoValueApplication.main(new String[] {});
-	}
-
 }

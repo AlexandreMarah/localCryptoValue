@@ -7,11 +7,20 @@
 </head>
 <body>
 <div>
-<select name="cryptoItemSelection">
-  <c:forEach items="${cryptoItemsMap}" var="cryptoItem">
-      <option value="${cryptoItem.key}">${cryptoItem.value}</option>
-  </c:forEach>
-</select>
-</div>
+
+<form method = "GET" action="getLocalCryptoValue">
+    <select name="cryptoItemSelection">
+      <c:forEach items="${cryptoItemsMap}" var="cryptoItem">
+          <option value="${cryptoItem.key}">${cryptoItem.value}</option>
+      </c:forEach>
+    </select>
+    <br/>
+    <input type = "text" name = "ip"/> IP address
+    <br/>
+    <input type = "submit" value = "Get local value" />
+</form>
+
+<c:if test="${cryptoLocalValue} != null && ${cryptoItemSelection} != null">
+        <div> Crypto value :  ${cryptoLocalValue}</div>
+</c:if>
 </body>
-</html>

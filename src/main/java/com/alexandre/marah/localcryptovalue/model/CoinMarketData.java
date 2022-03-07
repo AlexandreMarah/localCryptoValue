@@ -8,6 +8,9 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 
+/**
+ * Coin market related data.
+ */
 @Data
 @Builder
 @AllArgsConstructor

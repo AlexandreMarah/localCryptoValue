@@ -8,6 +8,9 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * Collection of coin market related objects.
+ */
 @Data
 @Builder
 @AllArgsConstructor
