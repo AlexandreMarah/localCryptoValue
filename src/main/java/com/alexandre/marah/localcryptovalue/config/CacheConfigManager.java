@@ -11,6 +11,9 @@ import org.springframework.context.annotation.Primary;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Cache configuration manager.
+ */
 @Configuration
 @EnableCaching
 public class CacheConfigManager {

@@ -6,8 +6,6 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 </head>
 <body>
-<div>
-
 <form method = "GET" action="getLocalCryptoValue">
     <select name="cryptoItemSelection">
       <c:forEach items="${cryptoItemsMap}" var="cryptoItem">
@@ -15,7 +13,7 @@
       </c:forEach>
     </select>
     <br/>
-    <input type = "text" name = "ip"/> IP address
+    <input type = "text" name = "ip" value="IP address"/> (optional)
     <br/>
     <input type = "submit" value = "Get local value" />
 </form>

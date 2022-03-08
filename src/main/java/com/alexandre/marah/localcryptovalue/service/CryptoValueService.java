@@ -27,6 +27,9 @@ import java.util.stream.Collectors;
 
 import static com.alexandre.marah.localcryptovalue.utils.LocalCryptoConstants.*;
 
+/**
+ * Cryptocurrency value retriever service implementation.
+ */
 @Service
 @AllArgsConstructor
 @Slf4j
@@ -35,6 +38,10 @@ public class CryptoValueService {
     @Autowired
     private CoinGeckoClient coinGeckoClient;
 
+    /**
+     * Get a list of the cryptocurrencies with the biggest coin market capitalization listed on Coin Gecko website.
+     * @return      a map of tuples <cryptocurrency ID, cryptocurrency name>
+     */
     @Cacheable(value = "crypto-list", cacheManager = "alternateCacheManager", key = "#root.method.name")
     public Map<String, String> getCryptoList() {
         try {
@@ -47,10 +54,17 @@ public class CryptoValueService {
         }
     }
 
+    /**
+     * Get a cryptocurrency localized value based on its id and on the provided IP address.
+     * @param cryptoId      the cryptocurrency ID used to retrieve information from Coin Gecko
+     * @param ip            the IP address the cryptocurrency should be localized at
+     * @return              an object containing the localized cryptocurrency value data
+     */
     @Cacheable(value = "crypto-value", cacheManager = "cacheManager")
     public LocalCryptoValue getLocalCryptoValue(String cryptoId, String ip) {
         if (!Pattern.matches(CRYPTO_ID_REGULAR_EXPRESSION, cryptoId)
                 || !(Pattern.matches(IPV4_ADDRESS_REGULAR_EXPRESSION, ip) || Pattern.matches(IPV6_ADDRESS_REGULAR_EXPRESSION, ip))) {
+            log.error("Invalid parameters provided");
             return null;
         }
         try {
@@ -59,6 +73,8 @@ public class CryptoValueService {
             if (locale.isPresent()) {
                 Currency localCurrency = Currency.getInstance(locale.get());
                 return retrieveAndBuildLocalCryptoValue(cryptoId, locale.get(), localCurrency);
+            } else {
+                log.info("Could not determine current locale based on IP address " + ip);
             }
         } catch (Exception e) {
             log.error("Error while retrieving the crypto value for cryptoID " + cryptoId + " : " + e.getCause());
