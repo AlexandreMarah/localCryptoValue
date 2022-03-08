@@ -19,8 +19,4 @@
     <br/>
     <input type = "submit" value = "Get local value" />
 </form>
-
-<c:if test="${cryptoLocalValue} != null && ${cryptoItemSelection} != null">
-        <div> Crypto value :  ${cryptoLocalValue}</div>
-</c:if>
 </body>

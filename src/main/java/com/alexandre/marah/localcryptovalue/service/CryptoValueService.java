@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -34,22 +35,30 @@ public class CryptoValueService {
     private CoinGeckoClient coinGeckoClient;
 
     public Map<String, String> getCryptoList() {
-        ResponseEntity<CoinMarketData[]> cryptoList = coinGeckoClient.getCryptoList(COIN_GECKO_CRYPTO_LIST_SIZE);
-        return cryptoList.getStatusCode() == HttpStatus.OK ? Arrays.stream(cryptoList.getBody())
-                .collect(Collectors.toMap(CoinMarketData::getId, CoinMarketData::getName)) : Map.of();
+        try {
+            ResponseEntity<CoinMarketData[]> cryptoList = coinGeckoClient.getCryptoList(COIN_GECKO_CRYPTO_LIST_SIZE);
+            return cryptoList.getStatusCode() == HttpStatus.OK && cryptoList.getBody() != null ? Arrays.stream(cryptoList.getBody())
+                    .collect(Collectors.toMap(CoinMarketData::getId, CoinMarketData::getName)) : Map.of();
+        } catch ( RestClientException e) {
+            log.error("Error while retrieving the cryptocurrencies list : " + e.getCause());
+            return Map.of();
+        }
     }
 
-    public LocalCryptoValue getLocalCryptoValue(String cryptoId, String ip)
-            throws IOException, GeoIp2Exception {
+    public LocalCryptoValue getLocalCryptoValue(String cryptoId, String ip) {
         if (!Pattern.matches(CRYPTO_ID_REGULAR_EXPRESSION, cryptoId)
                 || !(Pattern.matches(IPV4_ADDRESS_REGULAR_EXPRESSION, ip) || Pattern.matches(IPV6_ADDRESS_REGULAR_EXPRESSION, ip))) {
             return null;
         }
-        CityResponse cityInfo = getCityResponse(ip);
-        Optional<Locale> locale = getLocale(cityInfo);
-        if (locale.isPresent()) {
-            Currency localCurrency = Currency.getInstance(locale.get());
-            return retrieveAndBuildLocalCryptoValue(cryptoId, locale.get(), localCurrency);
+        try {
+            CityResponse cityInfo = getCityResponse(ip);
+            Optional<Locale> locale = getLocale(cityInfo);
+            if (locale.isPresent()) {
+                Currency localCurrency = Currency.getInstance(locale.get());
+                return retrieveAndBuildLocalCryptoValue(cryptoId, locale.get(), localCurrency);
+            }
+        } catch (Exception e) {
+            log.error("Error while retrieving the crypto value for cryptoID " + cryptoId + " : " + e.getCause());
         }
         return null;
     }
@@ -60,7 +69,7 @@ public class CryptoValueService {
             NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(locale);
             CoinData coinDataBody = coinData.getBody();
             if (coinDataBody == null) {
-                log.info("Unable to retrieve the local price for cryptocurrency " + cryptoId);
+                log.info("Unable to retrieve the local price for cryptocurrency " + cryptoId + " : empty data from Coin Gecko");
                 return null;
             }
             BigDecimal localeCoinValue = coinDataBody.getMarketData() != null && coinDataBody.getMarketData().getCurrentPrice() != null ?
@@ -72,7 +81,7 @@ public class CryptoValueService {
                     .cryptoValue(currencyFormatter.format(localeCoinValue))
                     .build();
         } else {
-            log.info("Unable to retrieve the local price for cryptocurrency " + cryptoId);
+            log.info("Error while retrieving the crypto value for cryptoID " + cryptoId + " from Coin Gecko.");
             return null;
         }
     }
