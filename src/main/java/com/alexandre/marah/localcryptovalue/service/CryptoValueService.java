@@ -11,6 +11,7 @@ import com.maxmind.geoip2.model.CityResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,7 @@ public class CryptoValueService {
     @Autowired
     private CoinGeckoClient coinGeckoClient;
 
+    @Cacheable(value = "crypto-list", cacheManager = "alternateCacheManager", key = "#root.method.name")
     public Map<String, String> getCryptoList() {
         try {
             ResponseEntity<CoinMarketData[]> cryptoList = coinGeckoClient.getCryptoList(COIN_GECKO_CRYPTO_LIST_SIZE);
@@ -45,6 +47,7 @@ public class CryptoValueService {
         }
     }
 
+    @Cacheable(value = "crypto-value", cacheManager = "cacheManager")
     public LocalCryptoValue getLocalCryptoValue(String cryptoId, String ip) {
         if (!Pattern.matches(CRYPTO_ID_REGULAR_EXPRESSION, cryptoId)
                 || !(Pattern.matches(IPV4_ADDRESS_REGULAR_EXPRESSION, ip) || Pattern.matches(IPV6_ADDRESS_REGULAR_EXPRESSION, ip))) {
